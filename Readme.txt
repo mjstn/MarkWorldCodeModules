@@ -1,6 +1,12 @@
-This repository contains libs for Arudino developed on Arduino UNO unless specified otherwise.
+This repository contains Arduino IDE compatible code to be shared from Mark-World.com
 
-Below is a description of the libraries present
+Visit Mark-World.com (also called mark-toys.com) to see many tech projects
+
+Below is a description of the Code posted to this repository
+
+ProxSensors
+Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
+Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
 
 Adafruit_L3GD20_PollingI2C-master
 A modified lib of the Adafruit_L3GD20-master lib which used the Wire lib.
