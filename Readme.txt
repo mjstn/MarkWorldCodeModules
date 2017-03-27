@@ -11,6 +11,9 @@ ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
 
+ServoTestWithLcdDisplay
+Use an Arduino Nano to read a potentiometer and then set a servo.  Very basic program to just test if the servo is operating.
+
 Adafruit_L3GD20_PollingI2C-master
 A modified lib of the Adafruit_L3GD20-master lib which used the Wire lib.
 This lib allow the Adafruit code to operate in an Arduino ISR and not use ISRs.
