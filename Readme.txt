@@ -4,6 +4,9 @@ Visit Mark-World.com (also called mark-toys.com) to see many tech projects
 
 Below is a description of the Code posted to this repository
 
+SonarHC-SR04WithLCDDisp
+Use an Arduino nano to control an HC-SR04 'sonar' ultrasonic range finding device.   We then control a Parallax 2 line by 16 character display over a serial line so that we can have a handheld rangefinder project.  
+
 ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
