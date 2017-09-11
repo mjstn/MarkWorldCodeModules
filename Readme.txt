@@ -1,4 +1,7 @@
-This repository contains Arduino IDE compatible code to be shared from Mark-World.com
+This repository contains code modules from Mark-World.com, also called Mark-Toys.com.
+
+
+Arduino IDE compatible code folders are here as well as C source.  To be honest, this is here to make it safe for my own usage but may serve as a good starting out point or as examples for others so I have left it as public.  Use at your own risk and it can give a nice head start on projects.
 
 Visit Mark-World.com (also called mark-toys.com) to see many tech projects
 
@@ -10,6 +13,15 @@ Use an Arduino nano to control an HC-SR04 'sonar' ultrasonic range finding devic
 ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
+
+Esp32_VL53L0X
+C source for support of the VL53L0X time-of-flight proximity sensors by ST Micro.   
+This is fairly rough and minimal code in the form of a .c and a .h file.
+This code does NOT do the complex calibrations required for precise measurements so it is 'as is' but I have found it useful.
+The code assumes use in Esp32 esp-idf environment using FreeRTOS and also the Mark-World I2C wrapper routines also in this repository.  
+
+Esp32_I2C
+This is mostly a wrapper around some esp-idf i2c calls that make I2C calls a little bit higher level than the low level esp-idf calls.  This code is used for example in the Esp32_VL53L0X module
 
 ServoTestWithLcdDisplay
 Use an Arduino Nano to read a potentiometer and then set a servo.  Very basic program to just test if the servo is operating.
