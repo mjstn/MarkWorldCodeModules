@@ -14,6 +14,14 @@
 #include "include/i2c_driver.h"
 #include "include/vl53l0x_driver.h"
 
+#include "sys_defs.h"	// for system specific APIs required like delay or gpio
+
+// Here we have api hooks that may be system specific
+static void delay_ms(int milliSec)
+{
+	system_delayMilliSeconds(milliSec);
+}
+
 //  These commands are sent to initialize VL53L0x chip in standard mode
 //  WARNING:   Stoped work as it is very complex so will try for this later
 DRAM_ATTR static const i2c_cmd_table_t vl53l0x_cmds_1[]={
@@ -50,12 +58,19 @@ static uint8_t g_vl53l0x_stopVar = 0;		// This value is sued in issue of new com
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  * @param regAddr		Internal register to set for the access.
  * @param value			Byte to be written to the register
+ *
+ * @return				Returns 0 for all went well else there was an error
  */
-void vl53l0x_writeReg(uint8_t i2c_num, uint8_t i2c_addr, uint8_t regAddr, uint8_t value)
+int vl53l0x_writeReg(uint8_t i2c_num, uint8_t i2c_addr, uint8_t regAddr, uint8_t value)
 {
 	uint8_t regVal = value;
 
-	i2c_writeBytes(i2c_num, i2c_addr, regAddr, &regVal, 1);
+	if (i2c_writeBytes(i2c_num, i2c_addr, regAddr, &regVal, 1)  != 0) {
+		i2c_unlock();
+		return -2;
+	}
+
+	return 0;
 }
 
 /**
@@ -130,7 +145,10 @@ int vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddr, int *xshutGpioPi
 		// Using PCF8574 for all xshut pins so set all low now
 		i2c_pcf8574_addr = xshutGpioPins[0] * -1;		// Negative of input value will be PCF8574 I2C 7-bit addr
 		buf[0] = 0;		// Set all lines low on PCF8574
-		i2c_writeBytes(I2C_MASTER_NUM, i2c_pcf8574_addr, 0xFF, &buf[0], 1);
+		if (i2c_writeBytes(I2C_MASTER_NUM, i2c_pcf8574_addr, 0xFF, &buf[0], 1) != 0) {
+			i2c_unlock();
+			return -2;
+		}
 	}
 
 	// Now one by one enable the chip by setting XShut as input to emulate open collector and set it's address
@@ -140,7 +158,10 @@ int vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddr, int *xshutGpioPi
 
 		// First release the sensor's XSHUT pin from low (shutdown) to high and it will use default I2C addr
 		if (i2c_pcf8574_addr > 0) {
-			i2c_writeBytes(I2C_MASTER_NUM, i2c_pcf8574_addr, 0xFF, &buf[0], 1);
+			if (i2c_writeBytes(I2C_MASTER_NUM, i2c_pcf8574_addr, 0xFF, &buf[0], 1)  != 0)  {
+				i2c_unlock();
+				return -3;
+			}
 			printf("sensor %d will be set to I2C addr 0x%x with new pcf8574 value 0x%x\n",idx, i2c_addr, buf[0]);
 			buf[0] = (buf[0] << 1) | 0x01;     // get ready for one more bit to be set high to release one more chip
 		} else {
@@ -148,8 +169,11 @@ int vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddr, int *xshutGpioPi
 		}
 
 		// Now the xshut line is high on one more sensor so set it's address to next highest address
-		// vTaskDelay(1 / portTICK_PERIOD_MS);
-		vl53l0x_writeReg(i2c_num, VL53L0X_POWER_ON_ADDRESS, I2C_SLAVE_DEVICE_ADDRESS, i2c_addr);
+		delay_ms(2);		// Grace period to come out of reset
+		if (vl53l0x_writeReg(i2c_num, VL53L0X_POWER_ON_ADDRESS, I2C_SLAVE_DEVICE_ADDRESS, i2c_addr) != 0)  {
+			i2c_unlock();
+			return -4;
+		}
 	}
 
 	i2c_unlock();
@@ -163,10 +187,12 @@ int vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddr, int *xshutGpioPi
  * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  *
+ * @return				Returns 0 for ok or negative for some sort of error
+ *
  * @note  Only a poor-man's port of a full driver is present as full initialization is far more complex.
  *        We need to understand what the errors but results so far indicate 'close enough' for rough distances
  */
-void vl53l0x_init(int i2c_num, uint8_t i2c_addr)
+int vl53l0x_init(int i2c_num, uint8_t i2c_addr)
 {
     int cmd=0;
     uint8_t buf[8];
@@ -175,7 +201,10 @@ void vl53l0x_init(int i2c_num, uint8_t i2c_addr)
     i2c_lock();		// Get lock for I2C bus
 
     // On initial init we write one value out before the common use table can be written
-	vl53l0x_writeReg(i2c_num, i2c_addr, 0x88, 0);
+	if (vl53l0x_writeReg(i2c_num, i2c_addr, 0x88, 0) != 0)  {
+		i2c_unlock();
+		return -21;
+	}
 
     //Send several commands to start to initialize the device
     i2c_writeCmdTable(i2c_num, i2c_addr, vl53l0x_cmds_1);
@@ -202,7 +231,10 @@ void vl53l0x_init(int i2c_num, uint8_t i2c_addr)
 	// We need to set this even if hardware interrupt is not used as we look at bits for measure done
 	vl53l0x_writeReg(i2c_num, i2c_addr, SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
 	printf("vl53l0x_init: Readback some bytes \n");
-	i2c_readBytes(i2c_num, i2c_addr, GPIO_HV_MUX_ACTIVE_HIGH, &regVal, 1);
+	if (i2c_readBytes(i2c_num, i2c_addr, GPIO_HV_MUX_ACTIVE_HIGH, &regVal, 1)  != 0)  {
+		i2c_unlock();
+		return -28;
+	}
 	regVal = regVal & ~0x10;
 	vl53l0x_writeReg(i2c_num, i2c_addr, GPIO_HV_MUX_ACTIVE_HIGH, regVal);
 	vl53l0x_writeReg(i2c_num, i2c_addr, SYSTEM_INTERRUPT_CLEAR, 0x01);

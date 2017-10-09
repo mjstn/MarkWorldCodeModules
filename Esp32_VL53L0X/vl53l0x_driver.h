@@ -45,11 +45,11 @@
 #define I2C_SLAVE_DEVICE_ADDRESS						0x8A
 
 // Externs for VL53L0X driver for header file we should make for this driver
-extern void vl53l0x_writeReg(uint8_t i2c_num, uint8_t i2c_addr, uint8_t reg, uint8_t value);
-extern int vl53l0x_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t *data);
-extern int vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddress, int *xshutGpioPins, int sensor_count);
+extern int  vl53l0x_writeReg(uint8_t i2c_num, uint8_t i2c_addr, uint8_t reg, uint8_t value);
+extern int  vl53l0x_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t *data);
+extern int  vl53l0x_initI2cAddresses(int i2c_num, uint8_t firstI2cAddress, int *xshutGpioPins, int sensor_count);
 extern bool vl53l0x_setSignalRateLimit(int i2c_num, uint8_t i2c_addr, float limit_Mcps);
-extern void vl53l0x_init(int i2c_num, uint8_t i2c_addr);
+extern int  vl53l0x_init(int i2c_num, uint8_t i2c_addr);
 extern void vl53l0x_startContinuous(int i2c_num, uint8_t i2c_addr);
 extern void vl53l0x_stopContinuous(int i2c_num, uint8_t i2c_addr);
 extern uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr);
