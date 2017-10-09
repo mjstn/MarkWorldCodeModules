@@ -14,6 +14,9 @@ ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
 
+SteelBallTable
+An Arduino sketch that executes two control loops that allow a steel ball to be balanced on top of a plate that has two axis of tilt controlled by two servos.   The table is a resistive pressure sensitive touch plate and is not a capacitive touch plate.  This is a very simplistic piece of code (for a control loop) and is not very fancy although understanding something of proportional control is of value because your hardware will vary and so the control coefficients will for sure be different in your usage.
+:
 Esp32_VL53L0X
 C source for support of the VL53L0X time-of-flight proximity sensors by ST Micro.   
 This is fairly rough and minimal code in the form of a .c and a .h file.
