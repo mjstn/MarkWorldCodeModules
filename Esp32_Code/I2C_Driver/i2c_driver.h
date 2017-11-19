@@ -1,3 +1,9 @@
+/*
+ * I2C driver wrapper for Esp32 esp-idf dev environment
+ *
+ * These are used for many mark-toys.com projects on the Mark-Toys ESP32 Dev Board
+ *
+ */
 #ifndef I2C_DRIVERS_H
 #define I2C_DRIVERS_H
 

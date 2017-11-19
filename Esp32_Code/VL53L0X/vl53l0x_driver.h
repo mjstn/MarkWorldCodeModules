@@ -38,7 +38,11 @@
 #define SYSTEM_INTERRUPT_CONFIG_GPIO					0x0A
 #define SYSTEM_INTERRUPT_CLEAR							0x0B
 #define RESULT_INTERRUPT_STATUS                         0x13
+
 #define RESULT_RANGE_STATUS                             0x14
+// Range status errors (there are more so any non zero is bad reading)
+#define RANGE_STATUS_AMB_LIGHT               0x01		// Ambient light causing sigma failure
+#define RANGE_STATUS_LOW_RETURN				 0x02       // Not enough signal returned to give valid signal
 #define FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT 	0x44
 #define MSRC_CONFIG_CONTROL         					0x60
 #define GPIO_HV_MUX_ACTIVE_HIGH							0x84
@@ -52,8 +56,8 @@ extern bool vl53l0x_setSignalRateLimit(int i2c_num, uint8_t i2c_addr, float limi
 extern int  vl53l0x_init(int i2c_num, uint8_t i2c_addr);
 extern void vl53l0x_startContinuous(int i2c_num, uint8_t i2c_addr);
 extern void vl53l0x_stopContinuous(int i2c_num, uint8_t i2c_addr);
-extern uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr);
-extern uint16_t vl53l0x_readRangeSingleMm(int i2c_num, uint8_t i2c_addr);
+extern uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr, uint8_t *status);
+extern uint16_t vl53l0x_readRangeSingleMm(int i2c_num, uint8_t i2c_addr, uint8_t *status);
 extern int vl53l0x_performSingleRefCalibration(int i2c_num, uint8_t i2c_addr, uint8_t vhv_init_byte);
 
 #endif  // VL53L0X_DRIVER_H

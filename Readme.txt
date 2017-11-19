@@ -1,30 +1,32 @@
 This repository contains code modules from Mark-World.com, also called Mark-Toys.com.
 
 
-Arduino IDE compatible code folders are here as well as C source.  To be honest, this is here to make it safe for my own usage but may serve as a good starting out point or as examples for others so I have left it as public.  Use at your own risk and it can give a nice head start on projects.
+C source as well as Arduino IDE code folders are.  To be honest, this is presented to give people a head start with assorted devices.  The Arduino code stands on it's own as long as the user has pulled in support for the stated processors type.  The C code came from environments of my projects and these files should serve as a good starting out point or as examples for others so I have left it as public.  Use at your own risk and it can give a nice head start on projects.
 
-Visit Mark-World.com (also called mark-toys.com) to see many tech projects
+Visit Mark-World.com (also called mark-toys.com) to see many projects where many of them use this code or modified versions of this cade due to time marching on.
 
 Below is a description of the Code posted to this repository
 
-SonarHC-SR04WithLCDDisp
-Use an Arduino nano to control an HC-SR04 'sonar' ultrasonic range finding device.   We then control a Parallax 2 line by 16 character display over a serial line so that we can have a handheld rangefinder project.  
+Esp32_Code
+Many drivers for displays and some sensors that live in the esp-idf type of dev environment are in this folder.  The source files usually sit in the 'main' folder and under that is usually the 'include' folder where the .h files will reside.  Some of these drivers will require the mark-toys i2c_driver.  I have done my best to either use the same code I use OR code that I tried to clean off non-required parts of header files from so it is usable in other projects.   Consider this code generally a good head start but you may have to resolve make issues in a few cases.
+
+  - I2C_Driver:    Contains wrapper API calls that then call out the Esp32  low level drivers from the esp-idf code
+  - VL53L0X:       For multiple ST micro time of flight 20mm to about 1.5 meter range sensors on one I2C bus
+                   This VL53L0X driver is greatly simplified effort to be standard C and lacks good calibration but is usable.
+  - ST7735:        This is a driver for the TFT displays based on the ST7735 chip.  Nice but small color TFT
+  - PCD8544:       Driver for the super-cheap Nokia 5110 type LCD display that uses the PCD8544 chip.  
+ 
 
 ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
 
-SteelBallTable
-An Arduino sketch that executes two control loops that allow a steel ball to be balanced on top of a plate that has two axis of tilt controlled by two servos.   The table is a resistive pressure sensitive touch plate and is not a capacitive touch plate.  This is a very simplistic piece of code (for a control loop) and is not very fancy although understanding something of proportional control is of value because your hardware will vary and so the control coefficients will for sure be different in your usage.
-:
-Esp32_VL53L0X
-C source for support of the VL53L0X time-of-flight proximity sensors by ST Micro.   
-This is fairly rough and minimal code in the form of a .c and a .h file.
-This code does NOT do the complex calibrations required for precise measurements so it is 'as is' but I have found it useful.
-The code assumes use in Esp32 esp-idf environment using FreeRTOS and also the Mark-World I2C wrapper routines also in this repository.  
+SonarHC-SR04WithLCDDisp
+Use an Arduino nano to control an HC-SR04 'sonar' ultrasonic range finding device.   We then control a Parallax 2 line by 16 character display over a serial line so that we can have a handheld rangefinder project. 
 
-Esp32_I2C
-This is mostly a wrapper around some esp-idf i2c calls that make I2C calls a little bit higher level than the low level esp-idf calls.  This code is used for example in the Esp32_VL53L0X module
+SteelBallTable
+An Arduino sketch that executes two control loops that allow a steel ball to be balanced on top of a plate that has two axis of tilt controlled by two servos.   The table is a resistive pressure sensitive touch plate and is not a capacitive touch plate.  This is a very simplistic piece of code (for a control loop) and is not very fancy although understanding something of proportional control is of value because your hardware will vary and so the control coefficients will for sure be different in your usage. The steel ball table has marched on to use the Mark-Toys Esp32 dev board with C in a FreeRTOS environment so the arduino code is from an earlier model.  Visit http://mark-toys.com/Steel_Ball_Table.html to see the Steel Ball Table in action.
+:
 
 ServoTestWithLcdDisplay
 Use an Arduino Nano to read a potentiometer and then set a servo.  Very basic program to just test if the servo is operating.
@@ -38,7 +40,6 @@ You may #undef I2CMOD so this code reverts to the original Dec 2014 Adafruit lib
 Future mode could make this code use either Wire or I2C through the .begin() method.
 The API to the library is identical to the Adafruit usage even though it may be nice 
 to have better error reporting if the API were modified but it remains compatible
-
 
 Adafruit_MMA8451_PollingI2C-master
 A modified version of Adafruit_MMA8451_Library-master lib which used the Wire lib.

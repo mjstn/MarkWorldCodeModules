@@ -4,6 +4,8 @@
  * This is a greatly simplified driver that appears to work 'good enough' for rough distances
  * This driver is in simple C so it can be used in simpler compiler environments.
  *
+ * This code requires the i2c_driver.c and .h to be part of the make
+ *
  * Disclaimers is that this code does NOT do the rather complex calibrations and so on
  * and as such it would only be as accurate as the factory default setup.
  * I have found it to be good enough for basic robotics object detects and in fact is fairly good
@@ -11,10 +13,15 @@
  * Formed by mjstn2011@gmail.com for Mark-Toys.com usage
  */
 
-#include "include/i2c_driver.h"
+#include "include/i2c_driver.h"			// Required for I2C support. This is mark-toys.com implementation
 #include "include/vl53l0x_driver.h"
 
-#include "sys_defs.h"	// for system specific APIs required like delay or gpio
+// User must supply these system resource APIs to this code
+extern void system_delayMilliSeconds(int milliSeconds);
+
+
+// This value is used in issue of new commands.
+static uint8_t g_vl53l0x_stopVar = 0;		
 
 // Here we have api hooks that may be system specific
 static void delay_ms(int milliSec)
@@ -46,8 +53,6 @@ DRAM_ATTR static const i2c_cmd_table_t vl53l0x_stopContCmds[]={
 	{0xff, {0x00}, 1},
     {0, {0}, 0xff},
 };
-
-static uint8_t g_vl53l0x_stopVar = 0;		// This value is sued in issue of new commands.
 
 
 /**
@@ -241,7 +246,7 @@ int vl53l0x_init(int i2c_num, uint8_t i2c_addr)
 
 	i2c_unlock();
 
-	return;
+	return 0;
 }
 
 /**
@@ -357,12 +362,14 @@ void vl53l0x_stopContinuous(int i2c_num, uint8_t i2c_addr)
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  *
  * @retval				A 14-bit distance in mm where bits D14 and D15 if set indicate an error
+ * @return	status		8-bit range status value that shows measurement errors. Use NULL to not use this.
  *
  * @note                Requires interrupts to be enabled so status of meas done can be read
  */
-uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr)
+uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr, uint8_t *status)
 {
 	uint16_t  retValue = 0;
+	uint8_t   rangeStatus = 0;
 
 	uint16_t rangeValue;
 	uint8_t buf[8];
@@ -379,9 +386,15 @@ uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr)
 	rangeValue = (buf[0] << 8) | buf[1];
 	retValue = rangeValue | retValue;	// OR in any error bits
 
+	i2c_readBytes(i2c_num, i2c_addr, RESULT_RANGE_STATUS, &rangeStatus, 1);
+
 	vl53l0x_writeReg(i2c_num, i2c_addr, SYSTEM_INTERRUPT_CLEAR, 0x01);
 
 	i2c_unlock();
+
+	if (status != 0) {
+		*status = rangeStatus;
+	}
 	return retValue;
 }
 
@@ -393,12 +406,14 @@ uint16_t vl53l0x_readRangeContinuousMm(int i2c_num, uint8_t i2c_addr)
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  *
  * @retval				A 12-bit distance in mm where bits D14 and D15 if set indicate an error
+ * @return	status		8-bit range status value that shows measurement errors. Use NULL to not use this.
  *
  * @note                Requires interrupts to be enabled so status of meas done can be read
  */
-uint16_t vl53l0x_readRangeSingleMm(int i2c_num, uint8_t i2c_addr)
+uint16_t vl53l0x_readRangeSingleMm(int i2c_num, uint8_t i2c_addr, uint8_t *status)
 {
 	uint16_t  retValue = 0;
+	uint8_t   rangeStatus = 0;
 	uint16_t  rangeValue = 0;
 	i2c_lock();		// Get lock for I2C bus
 
@@ -414,9 +429,13 @@ uint16_t vl53l0x_readRangeSingleMm(int i2c_num, uint8_t i2c_addr)
 	}
 	i2c_unlock();
 
-	rangeValue = vl53l0x_readRangeContinuousMm(i2c_num, i2c_addr);
+	rangeValue = vl53l0x_readRangeContinuousMm(i2c_num, i2c_addr, &rangeStatus);
 
 	retValue = (rangeValue & 0xfff) | retValue;	// OR in any error bits in upper bits
+
+	if (status != 0) {
+		*status = rangeStatus;
+	}
 
 	return retValue;
 }
