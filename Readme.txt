@@ -1,7 +1,7 @@
 This repository contains code modules from Mark-World.com, also called Mark-Toys.com.
 
 
-C source as well as Arduino IDE code folders are.  To be honest, this is presented to give people a head start with assorted devices.  The Arduino code stands on it's own as long as the user has pulled in support for the stated processors type.  The C code came from environments of my projects and these files should serve as a good starting out point or as examples for others so I have left it as public.  Use at your own risk and it can give a nice head start on projects.
+C source as well as Arduino IDE code folders come from projects presented now or in the past at Mark-World.com.  To be honest, this is presented to give people a head start with assorted devices.  The Arduino code stands on it's own as long as the user has pulled in support for the stated processors type.  The C code came from environments of my projects and these files should serve as a good starting out point or as examples for others so I have left it as public.  Use at your own risk and it can give a nice head start on projects.
 
 Visit Mark-World.com (also called mark-toys.com) to see many projects where many of them use this code or modified versions of this cade due to time marching on.
 
