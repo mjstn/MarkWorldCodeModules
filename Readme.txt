@@ -10,11 +10,13 @@ Below is a description of the Code posted to this repository
 Esp32_Code
 Many drivers for displays and some sensors that live in the esp-idf type of dev environment are in this folder.  The source files usually sit in the 'main' folder and under that is usually the 'include' folder where the .h files will reside.  Some of these drivers will require the mark-toys i2c_driver.  I have done my best to either use the same code I use OR code that I tried to clean off non-required parts of header files from so it is usable in other projects.   Consider this code generally a good head start but you may have to resolve make issues in a few cases.
 
-  - I2C_Driver:    Wrappers for the Esp32 sdk low level drivers
-  - VL53L0X:       Support for multiple ST micro time of flight range sensors on one I2C bus
-                   This VL53L0X driver is greatly simplified effort and lacks full calibration.
-  - ST7735:        Driver for TFT displays based on the ST7735 chip.  Nice but small color TFT
-  - PCD8544:       Driver for low cost Nokia 5110 type LCD display that uses the PCD8544 chip.  
+  - I2C_Driver:     Wrappers for the Esp32 sdk low level drivers
+  - LSM6DS3:        Support for ST micro popular accelerometer and Gyro chip
+  - VL53L0X:        Support for multiple ST micro time of flight range sensors on one I2C bus
+                    This VL53L0X driver is greatly simplified effort and lacks full calibration.
+  - ST7735:         Driver for TFT displays based on the ST7735 chip.  Nice but small color TFT
+  - SSD1306_SH1106: Support for popular small OLED display driver chips over I2C bus
+  - PCD8544:        Driver for low cost Nokia 5110 type LCD display that uses the PCD8544 chip.  
  
 
 ProxSensors
