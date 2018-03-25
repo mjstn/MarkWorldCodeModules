@@ -9,6 +9,9 @@
 // Requires the Mark-Toys.com i2c wrapper driver that uses the Esp32 SDK I2C calls
 //
 
+#ifndef LSM6DS3_DEFS_H_
+#define LSM6DS3_DEFS_H_
+
 // lsm6d3s.h suitable values should we use such a file   ---------------------
 #define LSM6DS3_I2C_ADDRESS  	0x6A  		// LSM6DS3 7-bit address on I2C when SD0 is low. If 0 we use SPI
 #define LSM6DS3_SEC_ADDRESS  	0x6B  		// LSM6DS3 7-bit address secondary I2C accelerometer
@@ -53,3 +56,5 @@ extern accelVectorInGs_t lsm6ds3_i2c_readAccelVectorInGs(int i2c_num, uint8_t i2
 extern gyroVector_t lsm6ds3_i2c_readGyroVectorInDegPerSec(int i2c_num, uint8_t i2c_addr);
 extern double lsm6ds3_i2c_readForwardAccelInGs(int i2c_num, uint8_t i2c_addr);
 extern double lsm6ds3_i2c_readForwardGyroDegPerSec(int i2c_num, uint8_t i2c_addr);
+
+#endif // LSM6DS3_DEFS_H_

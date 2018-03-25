@@ -23,6 +23,9 @@ ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
 
+ProximityBuzzer
+Use an Arduino Nano and an HC-SR04 sonar unit to form a proximity sensor with adjustable threshold.  If an object is seen closer than the threshold set with a potentiometer then we light an LED and also output a PWM signal that can be connected to a piezo driver or other driver to signal something is within the proximity alert distance.
+
 SonarHC-SR04WithLCDDisp
 Use an Arduino nano to control an HC-SR04 'sonar' ultrasonic range finding device.   We then control a Parallax 2 line by 16 character display over a serial line so that we can have a handheld rangefinder project. 
 
