@@ -78,6 +78,101 @@ int i2c_writeBytes(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uin
 }
 
 /**
+ * @name				i2c_writeWord
+ * @brief				Write a 16-bit word to the slave device starting at a given chip register
+ *
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr		Internal register to set for the access.  Use 0xFF for no register to access (single byte device)
+ * @param data          The word to be written (MSB first)
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_writeWord(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, int16_t data)
+{
+	int retCode = 0;
+	uint8_t buffer[4];
+	buffer[0] = (data >> 8) & 0xff;
+	buffer[1] = data & 0xff;
+
+	retCode = i2c_writeBytes(i2c_num, chipI2cAddr, regAddr, buffer, 2);
+
+	return retCode;
+}
+
+/**
+ * @name				i2c_writeByte
+ * @brief				Write one byte to the slave device starting at a given chip register
+ *
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr		Internal register to set for the access.  Use 0xFF for no register to access (single byte device)
+ * @param data   		data byte
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_writeByte(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t data)
+{
+    int retCode = 0;
+    int i;
+    i2c_cmd_handle_t cmd;
+
+    retCode = i2c_writeBytes(i2c_num, chipI2cAddr, regAddr, &data, 1);
+
+    return retCode;
+}
+
+/**
+ * @name				i2c_writeBits
+ * @brief				Write one or more bits in a single byte to the slave device starting at a given chip register
+ *
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr		Internal register to set for the access.  Use 0xFF for no register to access (single byte device)
+ * @param bitsStart     Starting bit for the bitfield where 0 is LSBit
+ * @param bitsLen       Number of bits in the bitfield to be written
+ * @param data  		Right justified bits to be written.
+ *
+ * @retval				Zero indicates no error.
+ *
+ * @note				You must place a lock around this to be atomic as it does a read then modify-write to one register
+ */
+int i2c_writeBits(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitsStart, uint8_t bitsLen, uint8_t data)
+{
+	int retCode = 0;
+	uint8_t bufr[4];
+
+	retCode = i2c_readBytes(i2c_num, chipI2cAddr, regAddr, &bufr[0], 1);
+	if (retCode == 0) {
+		uint8_t mask = ((1 << bitsLen) - 1) << (bitsStart - bitsLen + 1);
+		data <<= (bitsStart - bitsLen + 1); // shift data into correct position
+		data &= mask; // zero all non-important bits in data
+		bufr[0] &= ~(mask); // zero all important bits in existing byte
+		bufr[0] |= data; // combine data with existing byte
+		return i2c_writeBytes(i2c_num, chipI2cAddr, regAddr, &bufr[0], 1);
+	} else {
+		return retCode;
+	}
+}
+
+/** write a single bit in an 8-bit device register.
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr Register regAddr to write to
+ * @param bitNum Bit position to write (0-7)
+ * @param value New bit value to write
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_writeBit(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data) {
+    uint8_t b;
+    i2c_readByte(i2c_num, chipI2cAddr, regAddr, &b);
+    b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
+    return i2c_writeByte(i2c_num, chipI2cAddr, regAddr, b);
+}
+
+
+/**
  * @name				i2c_readBytes
  * @brief				Addresses chip and internal register then Read one or more bytes from the slave device
  * 						After all bytes read the bus is released.
@@ -100,7 +195,7 @@ int i2c_readBytes(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint
     }
 
     if (bufr == 0) {
-		return -1;
+		return -9;
 	}
 
     // Setup the target device for an access to a register address by queuing up addr and the bytes
@@ -138,6 +233,78 @@ int i2c_readBytes(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint
 		return ESP_FAIL;
 	}
 	return ESP_OK;
+}
+
+/**
+ * @name				i2c_readByte
+ * @brief				Addresses chip and internal register then Read one byte from the slave device
+ * 						After all bytes read the bus is released.
+ *
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr		Internal register to set for the access.
+ * @param *bufr			Pointer for the 1st data byte to be read.
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_readByte(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t *bufr)
+{
+    int retCode = ESP_OK;
+    i2c_cmd_handle_t cmd;
+
+    if (bufr == 0) {
+		return -9;
+	}
+
+    retCode = i2c_readBytes(i2c_num, chipI2cAddr, regAddr, bufr, 1);
+
+	return retCode;
+}
+
+
+/** Read multiple bits from an 8-bit device register.
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr Register regAddr to read from
+ * @param bitStart First bit position to read (0-7)
+ * @param length Number of bits to read (not more than 8)
+ * @param data Container for right-aligned value (i.e. '101' read from any bitStart position will equal 0x05)
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_readBits(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitStart, uint8_t bitsLen, uint8_t *data) {
+    // 01101001 read byte
+    // 76543210 bit numbers
+    //    xxx   args: bitStart=4, length=3
+    //    010   masked
+    //   -> 010 shifted
+	int retCode = 0;
+    uint8_t bufr[4];
+
+    retCode = i2c_readBytes(i2c_num, chipI2cAddr, regAddr, &bufr[0], 1);
+    if (retCode == 0) {
+        uint8_t mask = ((1 << bitsLen) - 1) << (bitStart - bitsLen + 1);
+        bufr[0] &= mask;
+        bufr[0] >>= (bitStart - bitsLen + 1);
+        *data = bufr[0];
+    }
+    return retCode;
+}
+
+/** Read a single bit from an 8-bit device register.
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param regAddr Register regAddr to read from
+ * @param bitNum Bit position to read (0-7)
+ * @param data Container for single bit value
+ *
+ * @retval				Zero indicates no error.
+ */
+int i2c_readBit(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data) {
+    uint8_t b;
+    uint8_t count = i2c_readByte(i2c_num, chipI2cAddr, regAddr, &b);
+    *data = b & (1 << bitNum);
+    return 0;
 }
 
 /**

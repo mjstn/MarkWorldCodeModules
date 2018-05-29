@@ -58,8 +58,15 @@ extern xSemaphoreHandle  g_i2c_lock;        // Lock for I2C bus as it runs in tw
 
 extern void i2c_master_init(int dataGpioPin, int clockGpioPin, int i2cFrequency);
 extern void i2c_slave_init(int dataGpioPin, int clockGpioPin);
+extern int i2c_writeWord(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, int16_t data);
 extern int i2c_writeBytes(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t *bufr, uint16_t numBytes);
+extern int i2c_writeByte(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t data);
+extern int i2c_writeBits(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitStart, uint8_t bitsLen, uint8_t data);
+extern int i2c_writeBit(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data);
+extern int i2c_readBits(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitStart, uint8_t bitsLen, uint8_t *data);
+extern int i2c_readBit(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data);
 extern int i2c_readBytes(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t *bufr, uint16_t numBytes);
+extern int i2c_readByte(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t *bufr);
 extern int i2c_waitOnRegStatus(i2c_port_t i2c_num, uint8_t chipI2cAddr, uint8_t regAddr, uint8_t bitMask, int waitCondition, int timeoutTics);
 extern void i2c_writeCmdTable(int i2c_num, uint8_t i2c_addr, i2c_cmd_table_t *cmdTable);
 
