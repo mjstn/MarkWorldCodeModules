@@ -18,6 +18,7 @@ Many drivers for displays and some sensors that live in the esp-idf type of dev 
   - SSD1306_SH1106: Support for popular small OLED display driver chips over I2C bus
   - PCD8544:        Driver for low cost Nokia 5110 type LCD display that uses the PCD8544 chip.  
   - MPU6050:        MPU6050 IMU ported to Standard C with DMP support from Jeff Rowberg fine i2cdevlib/Arduino/MPU6050
+  - BME280:         Bme280 environmental sensor measures Temperature, Humidity, Pressure
  
 
 ProxSensors
