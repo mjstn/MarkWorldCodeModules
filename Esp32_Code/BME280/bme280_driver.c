@@ -147,39 +147,68 @@ static int	bme280_InitCalData(int i2cBus, uint8_t chipI2cAddr, bme280_calib_data
 }
 
 /**
+ * @name				bmenv_read_chipid
+ * @brief				Readback chip ID from Bosch env sensor type which for Bme280 will be 0x60 but can be 0x58 for Bmp280
+ *
+ * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
+ * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
+ * @param expectedId    If non-zero we check for this ID and return error if what we get does not match
+ * @param data			User supplied buffer that the chip ID is read back into if non-zero
+ *
+ * @retval				Returns 0 if chip ID is ok else -1 or -9 if the buffer pointer is null
+ * data[0]              The data[0] value will be the chip ID we read even if it does not match expected ID
+ */
+int bmenv_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t expectedId, uint8_t *data)
+{
+	int retCode = 0;
+	uint8_t regVal = 0;
+
+	if (data == NULL) {
+		return DRIVER_ERR_INVALID_INPUT_POINTER;		// Buffer MUST be valid
+	}
+	*data = 0;			// Set zero till we get the value from the chip
+
+	uint8_t regAddr = BME280_REGISTER_CHIPID;    // Read address for chip id register
+
+	retCode = i2c_readBytes(i2c_num, i2c_addr, regAddr, &regVal, 1);
+	if (retCode != 0) {
+		return DRIVER_ERR_I2C_READ_FAILED;		//
+	}
+
+	// Fill in data[0] as whatever chipid we saw in the register
+	*data = regVal;
+
+	if ((expectedId != BMX_ANY_CHIPID) && (regVal != expectedId)) {
+		retCode = DRIVER_ERR_INVALID_CHIP_ID;
+	}
+
+	return retCode;
+}
+
+/**
  * @name				bme280_read_chipid
- * @brief				Readback chip ID which should ALWAYS be 0x60
+ * @brief				Readback chip ID from Bosch Bme280 env sensor
  *
  * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  * @param data			User supplied buffer that the chip ID is read back into if non-zero
  *
- * @retval				Returns 0 if chip ID is ok else -1
+ * @retval				Returns 0 if chip ID is ok else -1 or -9 if the buffer pointer is null
+ * data[0]              The data[0] value will be the chip ID we read even if it does not match expected ID
+ *
+ * note: This routine is for legacy use where only Bme280 is acceptable.  Use bmenv_read_chipid() when possible.
  */
 int bme280_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t *data)
 {
 	int retCode = 0;
-	uint8_t regVal = 0;
-
-	uint8_t regAddr = BME280_REGISTER_CHIPID;    // Read address for chip id register
-
-	i2c_readBytes(i2c_num, i2c_addr, regAddr, &regVal, 1);
-
-	if (data != NULL) {
-		*data = regVal;
-	}
-
-	if (regVal != BME280_CHIPID ) {
-		retCode = -1;
-	}
-
+    retCode = bmenv_read_chipid(i2c_num, i2c_addr, BME280_CHIPID, data);
 	return retCode;
 }
 
 
 /**
  * @name	bme280_Init
- * @brief	Setup chip and Read in calibration data for BME280 so we can correct data later
+ * @brief	Setup BME280 or BMP280 chip and Read in calibration data for BME280 so we can correct data later
  *
  * @param i2cBus		The I2C bus number
  * @param chipAddr	    7-bit format I2C address
@@ -206,14 +235,14 @@ int	bme280_Init(int i2cBus, uint8_t chipAddr, uint8_t chipId, bme280_calib_data_
 	// bme280_SoftReset(chipAddr);
 
 	while (1) {
-		// Verify chip ID is correct or fail right away
+		// Verify chip ID is correct or fail right away.  We read ANY chipId be it Bme280, Bmp280 or even Bme680
 		read_data[0] = !chipId;
-		retCode = bme280_read_chipid(i2cBus, chipAddr, &read_data[0]);
+		retCode = bmenv_read_chipid(i2cBus, chipAddr, BMX_ANY_CHIPID, &read_data[0]);
 		if (retCode != DRIVER_ERR_NO_ERROR) {
 			break;
 		}
 
-		// Here we allow chipid of BME280 or BME680 as both will work for BME280 features
+		// Here we allow chipid of BME280 or BME680 as both will work for BME280 features OR allow BMP280
 		if (read_data[0] != chipId) {
 			retCode = DRIVER_ERR_INVALID_CHIP_ID;
 			break;

@@ -18,6 +18,8 @@
 
 #define BME280_I2C_ADDRESS      0x76    // Chip address over I2C bus when SD0 is tied to ground
 #define BME280_CHIPID			0x60	// Chip ID for check we can access chip ok
+#define BMP280_CHIPID			0x58	// Chip ID for Bmp280
+#define BMX_ANY_CHIPID          0       // Used to read chip id from any BMx series be it Bme280, Bmp280, Bme680
 #define BME280_SOFTRESET_VAL    0xB6    // Value used to soft reset register
 
 #define BME680_CHIPID			0x61	// Chip ID for check we can access chip ok
@@ -100,6 +102,7 @@
 // Interfaces to the BME280 driver calls.  See source for explanations.
 // One key point is we use I2C or SPI bus based on chipAddr
 extern int bme280_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t *data);
+extern int bmenv_read_chipid(int i2c_num, uint8_t i2c_addr, uint8_t expectedId, uint8_t *data);
 extern int bme280_Init(int i2cBus, uint8_t chipAddr, uint8_t chipId, bme280_calib_data_t *calData);
 extern int bme280_readBytes(int i2cBus, uint8_t chipAddr, int8_t regAddr, uint8_t *bufr, uint16_t numBytes);
 extern int bme280_writeBytes(int i2cBus, uint8_t chipAddr, int16_t regAddr, uint8_t *bufr, uint16_t numBytes);
