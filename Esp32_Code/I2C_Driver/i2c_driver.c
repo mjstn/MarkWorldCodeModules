@@ -357,16 +357,24 @@ int i2c_waitOnRegStatus(i2c_port_t i2c_num, uint8_t chipI2cAddr,
  * @param i2c_num		I2C peripheral e.g. I2C_NUM_1
  * @param i2c_addr		The 7-bit I2C chip address for the slave I2C device
  * @param cmdTable   	Pointer to table of commands in format of i2c_cmd_table_t
+ *
+ * @return 0 for no error else negative for some form of error
  */
-void i2c_writeCmdTable(int i2c_num, uint8_t i2c_addr, i2c_cmd_table_t *cmdTable)
+int i2c_writeCmdTable(int i2c_num, uint8_t i2c_addr, i2c_cmd_table_t *cmdTable)
 {
 	int cmd = 0;
+	int retCode = 0;
 	uint8_t buf[8];
 
 	while (cmdTable[cmd].databytes!=0xff) {
 		buf[0] = cmdTable[cmd].data[0];
 		// GET_PRT; printf("write cmd 0x%x to I2C addr 0x%x with data 0x%x\n", cmdTable[cmd].cmd, i2c_addr, buf[0]); EXIT_PRT;
-		i2c_writeBytes(i2c_num, i2c_addr, cmdTable[cmd].cmd, &buf[0], 1);
+		retCode = i2c_writeBytes(i2c_num, i2c_addr, cmdTable[cmd].cmd, &buf[0], 1);
+		if (retCode != 0) {
+			return -1;
+		}
 		cmd++;
 	}
+
+	return retCode;
 }
