@@ -20,6 +20,8 @@ Many drivers for displays and some sensors that live in the esp-idf type of dev 
   - MPU6050:        MPU6050 IMU ported to Standard C with DMP support from Jeff Rowberg fine i2cdevlib/Arduino/MPU6050
   - BME280:         Bme280 environmental sensor measures Temperature, Humidity, Pressure
  
+RaspberryPiUtilities:
+Tools that can be of use to users of Raspberry Pi 2 or 3 products.  A tool to test the GPIO lines in present as well as a tool to use to easily supply a restart/shutdown switch with single LED feedback and ability to startup your own code after each reboot if desired.
 
 ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
