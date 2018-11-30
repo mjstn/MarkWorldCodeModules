@@ -1,19 +1,30 @@
 #
 # Raspberry Pi Background System Monitor For Shutdown and other Program Admin
 #
-# The intent is that this script is started in background from /etc/rc.local or in a cron job 
-# In the simplest case this tool then does restart or halt using one button.
-# The script can also start some program(s) from a script made by the user and stop with a second script prior to shutdown
+# The intent is this is started in background as cron job and can start and stop the system
 #
-# To use this monitor define the desired switches near allLeds array and the switches near allSwitches array
+# To use this monitor define the leds near allLeds array and the switches near allSwitches array
 #
-# Created by mark@mark-world.com
+# Typical Usage: (when setup with the 'statusLed', 'resetSwitch', and 'autostartJumper')
+#  - Use of just the reset switch for reboot or full shutdown (For when autostartJumper is not to ground)
+#    o On Powerup the statusLed will go from off to a couple short blinks and be left on to mean linux is up.
+#    o Press and hold reset switch until you see statusLed blink (about 3 sec) then release the switch.
+#      This will then cause a 'shutdown -r' in linux and the system will reboot.
+#      Just before the shutdown you will see 6 or so short blinks and the led will turn off then the restart happens.
+#    o Press and hold reset switch till you see several short blinks but then start to see long 1 sec blinks.
+#      Release the switch when you see the long 1 second blinks and a 'shutdown -h now' will happen.
+#      Just before the full shutdown (halt) happens several medium blinks and the led will turn off at shutdown.
+#  - See the Customization note if you want to start your code at bootup and stop your code prior to shutdown
+#    If you install the autostartJumper and have configured to start your code it brings up your code at boot time.
+#    You would see several short blinks then 3 or so medium blinks then your code starts if autostart jumper is on.
+#  - There are some other modes such as monitoring for lost processes you care about and auto-reboot if 
+#    you have lost processes that are critical to your usage.  That has not been tested for a while so use as example.
 #
-# Installation: (assume tool is in the home folder of a linux user of name 'yourUserName')
+# Installation:
 #  - make a folder in /home/yourUserName/config and in that folder have folder called logs and one called bin.
 #  - Place this script in /home/yourUserName/config/bin
 #  - As root edit /etc/rc.local and have this line at the end just before the exit 0 line
-#    python /home/yourUserName/config/bin/sys_monitor.py
+#    python /home/ubuntu/config/bin/sys_monitor.py
 #
 # Customization:
 #  - Edit and set resetSwitch to your reset switch GPIO line
@@ -434,13 +445,13 @@ try:
             time.sleep(2.0)
             if readSwitch(resetSwitch) == 0:
                 os.system('touch ' + suspendLedUpdatesFile + ' 2> /dev/null');
-                time.sleep(2.0)
+                time.sleep(1.0)
                 setAllLeds( ledOff )
             if readSwitch(resetSwitch) == 0:
                 logLine("System will be rebooted if reset key released or shutdown if reset held longer")
                 blinkLed( shutdownLed, 8, 0.1, ledOff )
                 setAllLeds( ledOff )
-                time.sleep(3.0)
+                time.sleep(2.0)
                 if readSwitch(resetSwitch) == 0:
                     logLine("System will be shutdown and halted due to reset switches held down long time.")
                     blinkLed( shutdownLed, 3, 0.6, ledOff )
@@ -450,7 +461,7 @@ try:
                     # now system should be off so turn off all leds
                     # then blink status led many times leaving it OFF for halt
                     setAllLeds( ledOff )
-                    blinkLed( shutdownLed, 5, 0.6, ledOn )
+                    blinkLed( shutdownLed, 5, 0.6, ledOff )
 
                     os.system("sudo shutdown -h now")
                     keepGoing = 0
@@ -463,7 +474,7 @@ try:
                     # now system should be off so turn off all leds
                     # then blink status led a few times leaving it ON for restart
                     setAllLeds( ledOff )
-                    blinkLed( shutdownLed, 8, 0.25, ledOn )
+                    blinkLed( shutdownLed, 8, 0.25, ledOff )
                     os.system("sudo shutdown -r now")
                     keepGoing = 0
 
