@@ -47,6 +47,17 @@ When setup with the 'statusLed', 'resetSwitch', and 'autostartJumper' these thin
     - As root edit /etc/rc.local and have this line at the end just before the exit 0 line
       python /home/ubuntu/config/bin/sys_monitor.py  (There are other ways to do this)
 
+For starting a ROS node as root we must add to /.bashrc the general and our own ROS env to run roslaunch.
+To do this I suggest as root you add to the end of roots  ~/.bashrc these lines (second line is user specific ROS env)
+
+    source /opt/ros/kinetic/setup.bash
+    source /home/ubuntu/catkin_ws/devel/setup.bash
+
+# Running a ROS node as Root on startup using autostart script if sys_monitor.py was started in rc.local
+Start system monitor utility by Mark-Toys.com
+python /home/ubuntu/config/bin/sys_monitor.py
+
+
 # Customization of GPIO lines and other features
 
     - Edit and set resetSwitch to your reset switch GPIO line
