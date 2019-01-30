@@ -3,8 +3,8 @@
 This repository contains code modules from Mark-World.com, also called Mark-Toys.com.
 
 If you appreciate these bits, feel free to **Buy Me A Cup Of Coffee** with a small donation by use of 
-**Completely Optional PayPal to mjstnpub2 <atto> pacbell <dotter> com is ok by me**
-Notice the lame attempt to make the email slightly non-standard looking where <atto> is @
+**Completely Optional PayPal to mjstnpub2 atto pacbell dotter com is ok by me**
+Notice the lame attempt to make the email slightly non-standard looking where atto is @
 No pressure or requirement, just putting this out there for those who wish to promote my contributions on this github
 
 
