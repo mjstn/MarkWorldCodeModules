@@ -1,5 +1,5 @@
 #
-# Raspberry Pi Background System Monitor For Shutdown and other Program Admin
+# Raspberry Pi Background System Monitor For Reset, Shutdown and autostart your app
 #
 # The intent is this is started in background as cron job and can start and stop the system
 #
@@ -8,16 +8,17 @@
 # Typical Usage: (when setup with the 'statusLed', 'resetSwitch', and 'autostartJumper')
 #  - Use of just the reset switch for reboot or full shutdown (For when autostartJumper is not to ground)
 #    o On Powerup the statusLed will go from off to a couple short blinks and be left on to mean linux is up.
-#    o Press and hold reset switch until you see statusLed blink (about 3 sec) then release the switch.
+#    o Once the system is running you have a clean reset or clean shutdown possible.
+#      For reset: Press and hold reset switch until you see statusLed blink (about 3 sec) then release fast.
 #      This will then cause a 'shutdown -r' in linux and the system will reboot.
 #      Just before the shutdown you will see 6 or so short blinks and the led will turn off then the restart happens.
-#    o Press and hold reset switch till you see several short blinks but then start to see long 1 sec blinks.
+#    o For shutdown: Press and hold reset switch till you see short blinks then start to see long 1 sec blinks.
 #      Release the switch when you see the long 1 second blinks and a 'shutdown -h now' will happen.
 #      Just before the full shutdown (halt) happens several medium blinks and the led will turn off at shutdown.
 #  - See the Customization note if you want to start your code at bootup and stop your code prior to shutdown
 #    If you install the autostartJumper and have configured to start your code it brings up your code at boot time.
 #    You would see several short blinks then 3 or so medium blinks then your code starts if autostart jumper is on.
-#  - There are some other modes such as monitoring for lost processes you care about and auto-reboot if 
+#  - There are some other modes such as monitoring for lost processes you care about and auto-reboot if
 #    you have lost processes that are critical to your usage.  That has not been tested for a while so use as example.
 #
 # Installation:
@@ -31,11 +32,13 @@
 #  - Edit and set statusLed to your GPIO line that will drive an LED with resistor where a high turns on the LED
 #  - If you want to autostart anything:
 #     o define an autostartJumper GPIO line if you want a jumper to do the start
-#     o Form executable script in /home/yourUserName/config/bin/startSystemScript
-#     o Form executable script in /home/yourUserName/config/bin/stopSystemScript
+#     o Form executable script in /home/yourUserName/config/bin/startSystemScript. Do a sudo chmod 775 on file
+#     o Form executable script in /home/yourUserName/config/bin/stopSystemScript   Do a sudo chmod 775 on file
+#     o Edit or form as required /etc/rc.local with these lines just before the final line that has 'exit 0'
+#       python /home/ubuntu/config/bin/sys_monitor.py      # Use proper path, in this case in user 'ubuntu'
 #
 # Special Startup Options Are Done using front panel switches and/or a autostart jumper if defined
-#   - Install the autostartJumper to enable autostart feature
+#   - Install the autostartJumper to enable autostart feature IF you have done required config steps for autostart
 #   - Hold down 'MODE' switch on bootup to not autostart system
 #
 # Switch Features Once The System is Started
@@ -44,7 +47,7 @@
 #   - Hold down 'MODE'  and 'RESET' switch for over 4 seconds to do halt to do power-off clean
 #
 # Process Watchdog Feature
-#   - This monitor will watch for a failed process and if a process has stopped will 
+#   - This monitor will watch for a failed process and if a process has stopped will
 #     lead to a reboot in 4 minutes.  If more than 4 are stopped auto-reboot is disabled
 #
 # Features triggered by existance of special files in a config folder
@@ -56,9 +59,14 @@
 #   - no_auto_restart.now     Causes this monitor to not auto-restart the system when some processes are missing
 #   - stop_system.now         Causes this monitor stop the system. File is removed as this is done.
 #   - forced_reboot.now       Causes a stop of system and reboot if it appears some time after script start
-#   - exit_monitor.now        Causes a stop of the monitor but not the system. File is removed on exit. 
+#   - exit_monitor.now        Causes a stop of the monitor but not the system. File is removed on exit.
 #   - suspend_led_updates.now Touched if reset is pressed so main does not update leds for a while
 #
+# Key revisions of this script
+#   20181129.1     First published version that ran on Python 2.7
+#   20221105.1     Updated for python 3.x.  Added some more install notes in header of the file
+#
+
 import time
 import os
 
@@ -76,8 +84,8 @@ scriptStartTime = time.time()
 
 # Define option state variables here
 opt_autostartSystem       = 0        # if 1 we will autostart even without autostartJumper unless another switch disallows it
-opt_forcedRebootDelay     = 300.0 
-opt_autoRebootDelay       = 300.0 
+opt_forcedRebootDelay     = 300.0
+opt_autoRebootDelay       = 300.0
 
 # Setup GPIO defines to be used in the script
 # If a switch is 0 we are not using it's functionality but it must be present due to script usage
@@ -102,7 +110,7 @@ systemRoot            = '/home/ubuntu/'
 logFolder             = systemRoot + 'config/logs/'
 logFilePath           = logFolder  + 'syslog'
 exeBinPath            = systemRoot + 'bin/'
-scriptPath            = systemRoot + 'config/'   
+scriptPath            = systemRoot + 'config/'
 exitMonitorCmdFile    = systemRoot + 'config/exit_monitor.now'
 copyExeCmdFile        = systemRoot + 'config/copy_executables.now'
 displayTestCmdFile    = systemRoot + 'config/display_test.now'
@@ -119,7 +127,7 @@ g_normalProcsRunning  = True
 g_lastTimeAllRunning  = time.time()
 
 # If you want to detect for a missing process and then reboot if one is missing define these below
-process1              = 'system_process_1' 
+process1              = 'system_process_1'
 process2              = 'system_process_2'
 process3              = 'system_process_3'
 requiredProcesses     = []   # [process_1, process_2, process_3]
@@ -127,7 +135,7 @@ secondsTillAutoReset  = 240.0
 
 GPIO.setwarnings(False)
 
-# configure GPIO lines we will use for control 
+# configure GPIO lines we will use for control
 GPIO.setmode(GPIO.BCM)
 
 # ---------------------------  Required System Hooks -------------------------
@@ -166,7 +174,7 @@ def readSwitch(gpioSwitch):
        return GPIO.input(gpioSwitch)
   else:
        return 1
-  
+
 
 # Log output from this script to a log file
 def logLine(line):
@@ -179,7 +187,6 @@ def logLine(line):
             f.close()
     except IOError:
         pass
-
 
 # Blink a single led the number of times requested with requested blink period
 # The led line is first set low then high and after done are all set to final value
@@ -225,7 +232,7 @@ def startBinProcess( process_name ):
     return True
 
 
-# check for required number of processes for operation 
+# check for required number of processes for operation
 # WARNING: Uses globals so this is just to keep code looking cleaner
 def checkProcesses(procCheckTimer):
     global g_normalProcsRunning
@@ -246,7 +253,7 @@ def checkProcesses(procCheckTimer):
             if g_normalProcsRunning == True:
                 # TODO: It would be nice to show when more die but lets limit scope to showing just first one
                 logLine("ALERT: Only " + str(numRunningProcesses) + " out of " + str(numCheckedProcesses) + " processes running!")
-                # First time seen missing 
+                # First time seen missing
                 g_normalProcsRunning = False
             else:
                 # If down for long time we restart the system
@@ -260,12 +267,12 @@ def checkProcesses(procCheckTimer):
             if g_normalProcsRunning == False:
                 logLine("ALERT: Now " + str(numRunningProcesses) + " running out of " + str(numCheckedProcesses) + ". Allow this case.")
             g_normalProcsRunning = True
- 
+
 def printUsage():
-    print 'seismo_monitor usage:  seismo_monitor.py [options]'
-    print '  -r    Set forced reboot delay to 0' 
-    print '  -s    Do not start the system on this run'
-    print '  -h    print this help menu' 
+    print ('seismo_monitor usage:  seismo_monitor.py [options]')
+    print ('  -r    Set forced reboot delay to 0' )
+    print ('  -s    Do not start the system on this run')
+    print ('  -h    print this help menu' )
 
 # -----------------------------   Start Main ----------------------------------
 #
@@ -283,7 +290,7 @@ logLine(os.path.basename(__file__) + ' version ' + scriptVersion + ' background 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "hrsf")
 except getopt.GetoptError as err:
-    print str(err)  # will print something like "option -a not recognized"
+    print (str(err))  # will print something like "option -a not recognized"
     printUsage()
     logLine(os.path.basename(__file__) + ' background monitor exiting due to bad option entererd.')
     sys.exit(2)
@@ -293,7 +300,7 @@ verbose = False
 for opt, arg in opts:
     if opt in ("-s"):
         logLine(os.path.basename(__file__) + ' background monitor option -s to not start the system.')
-        opt_autostartSystem = 0 
+        opt_autostartSystem = 0
     elif opt in ("-r"):
         logLine(os.path.basename(__file__) + ' background monitor option -r for no forced reboot delay.')
         opt_forcedRebootDelay = 0
@@ -353,9 +360,9 @@ if (os.path.isfile(displayTestCmdFile) > 0) or (not readSwitch(accessSwitch)):
 
 # If autostart is allowed and the special file to disable autostart is not found then we have a few ways to autostart
 #  Use of defined and installed autostartJumper connected to ground does autostart
-#  if opt_autostartSystem is 1 and  MODE or ACCESS are not pressed 
+#  if opt_autostartSystem is 1 and  MODE or ACCESS are not pressed
 #
-# In any case if the noAutoStartCmdFile is present we do not autostart in any case 
+# In any case if the noAutoStartCmdFile is present we do not autostart in any case
 # If we do the autostart then blink quickly the status led a bunch more times
 if (readSwitch(autostartJumper) == 0) or ((opt_autostartSystem > 0) and (readSwitch(modeSwitch) == 1 and  readSwitch(accessSwitch) == 1)):
         if not os.path.isfile(noAutoStartCmdFile):
@@ -437,7 +444,7 @@ try:
 
 
         # Reset switch can do a reset or a full shutdown depending on how long it is held.
-        # - Hold for 2 seconds and errorLed will blink a few times fast. 
+        # - Hold for 2 seconds and errorLed will blink a few times fast.
         #   Release as it blinks fast and we reboot
         # - Continue to hold for 3 seconds more and a full halt happens
         # If we see reset pressed for at least a couple seconds we also stop LED updates for 15 seconds
