@@ -49,10 +49,15 @@ exit
 
 #  Define the speach model vosk will use to process audio input
 model = Model(r"/home/ubuntu/vosk-models/vosk-model-small-en-us-0.15")
-recognizer = KaldiRecognizer(model, 16000)
+recognizer = KaldiRecognizer(model, 44100)
 
+# Setup microphone for sampling with pyaudio
+micSampleRate = 44100
+micDataChunkSize  = 8192
 mic = pyaudio.PyAudio()
-stream = mic.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
+micInputInfo = mic.get_default_input_device_info()
+print("Mic input info: ",micInputInfo)
+stream = mic.open(format=pyaudio.paInt16, channels=1, rate=micSampleRate, input=True, frames_per_buffer=micDataChunkSize)
 
 stream.start_stream()
 
@@ -60,7 +65,12 @@ stream.start_stream()
 # Each time we get some text we output it to a command file for other process to 'hear'
 while True:
     try:
-        data = stream.read(4096)
+        # get data from mic stream. We use exception_on_overflow = False)
+        # because as root this read failed. 
+        # See stackexchange.com/question/10733903/pyaudio-input-overflowed
+        # where post 33 says to add this option to stream.read()
+        data = stream.read(micDataChunkSize, exception_on_overflow = False)
+
         # if len(data) == 0:
         #     break           # optional break out of this for no data error
         if recognizer.AcceptWaveform(data):
