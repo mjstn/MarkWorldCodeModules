@@ -31,6 +31,13 @@ Many drivers for displays and some sensors that live in the esp-idf type of dev 
 # RaspberryPiUtilities
 Tools that can be of use to users of Raspberry Pi 2 or 3 products.  A tool to test the GPIO lines in present as well as a tool to use to easily supply a restart/shutdown switch with single LED feedback and ability to startup your own code after each reboot if desired.
 
+# Speach and Keyboard Input
+speachRecognizer    Contains python script for support of the  vosk speach recognition system.
+                    Outputs by default to ~/audioprocessing/speachOutFile.txt. 
+                    Requires vosk installed per   https://alphacephei.com/vosk
+
+miniRfKeyboard      Contains python script for support of Rii i8S Mini Keyboard and similar RF dongle keyboards
+
 # ProxSensors
 Use an Arduino nano to monitor up to 8 VL53L0X IR time of flight distance measurement units.
 Respond to a host as to what ranges are current for each unit in either polling or automatic periodic sending of the values for the sensors.
